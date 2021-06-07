@@ -1,7 +1,6 @@
 package com.example.fund.service;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,26 +20,11 @@ import com.example.fund.repository.UserRepository;
 
 @Service
 public class UserRegistrationServiceImpl implements UserRegistrationService {
-	
+	@Autowired
 	private UserRepository userRepository;
+	@Autowired
 	private AccountRepository accountRepository;
 	
-	@Autowired
-	public void setUserRepository(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
-	
-	public UserRepository getUserRepository() {
-		return userRepository;
-	}
-	@Autowired
-	public void setAccountRepository(AccountRepository accountRepository) {
-		this.accountRepository = accountRepository;
-	}
-	public AccountRepository getAccountRepository() {
-		return accountRepository;
-	}
-
 	@Override
 	@Transactional
 	public UserDTO createUser(UserDTO user) {
@@ -71,8 +55,7 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 	@Override
 	public UserDTO getUser(Long id) {
 		Optional<User> user = userRepository.findById(id);
-		UserDTO userDto = new UserDTO(user);
-		return userDto;
+		return new UserDTO(user);
 	}
 
 	@Override

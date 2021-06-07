@@ -9,13 +9,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class UserDTO {
 	private Long id;
-	private String loginId;
-	private String password;
 	private String firstName;
 	private String lastName;
 	private String email;
 	private LocalDate lastUpdated;
 	private String phone;
+	private Login login;
 	
 	public UserDTO() {
 	}
@@ -27,8 +26,7 @@ public class UserDTO {
 			this.firstName = user.getFirstName();
 			this.lastName = user.getLastName();
 			this.lastUpdated = user.getLastUpdated();
-			this.loginId = user.getLoginId();
-			this.password = user.getPassword();
+			this.login = new Login(user.getLoginId(),user.getPassword());
 			this.phone = user.getPhone();
 		}
 	}
@@ -71,21 +69,14 @@ public class UserDTO {
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
-
-	public String getLoginId() {
-		return loginId;
+	public Login getLogin() {
+		if(login==null) {
+			login = new Login();
+		}
+		return login;
 	}
-
-	public void setLoginId(String loginId) {
-		this.loginId = loginId;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
+	public void setLogin(Login login) {
+		this.login = login;
 	}
 
 	public UserDTO getUserDTO(User user) {
@@ -94,9 +85,8 @@ public class UserDTO {
 		this.firstName = user.getFirstName();
 		this.lastName = user.getLastName();
 		this.lastUpdated = user.getLastUpdated();
-		this.loginId = user.getLoginId();
-		this.password = user.getPassword();
 		this.phone = user.getPhone();
+		this.login = new Login(user.getLoginId(),user.getPassword());
 		return this;
 	}
 	
@@ -108,9 +98,9 @@ public class UserDTO {
 		user.setFirstName(firstName);
 		user.setLastName(lastName);
 		user.setLastUpdated(lastUpdated);
-		user.setLoginId(loginId);
-		user.setPassword(password);
 		user.setPhone(phone);
+		user.setLoginId(login.getLoginId());
+		user.setPassword(login.getPassword());
 		return user;
 	}
 	@Override
@@ -121,8 +111,6 @@ public class UserDTO {
         return id == user.id 
         		&& Objects.equals(lastName, user.lastName)
         		&& Objects.equals(firstName, user.firstName)
-        		&& Objects.equals(loginId, user.loginId)
-        		&& Objects.equals(password, user.password)
         		&& Objects.equals(email, user.email)
         		&& Objects.equals(lastUpdated, user.lastUpdated)
         		&& Objects.equals(phone, user.phone);
@@ -130,6 +118,6 @@ public class UserDTO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, lastName, firstName, loginId, password, email, phone, lastUpdated);
+        return Objects.hash(id, lastName, firstName, email, phone, lastUpdated);
     }
 }

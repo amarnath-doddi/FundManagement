@@ -8,19 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.fund.dto.BeneficiaryDTO;
-import com.example.fund.entity.Beneficiary;
 import com.example.fund.repository.BeneficiaryRepository;
 
 @Service
 public class BeneficiaryServiceImpl implements BeneficiaryService {
-	private BeneficiaryRepository beneficiaryRepository;
 	@Autowired
-	public void setBeneficiaryRepository(BeneficiaryRepository beneficiaryRepository) {
-		this.beneficiaryRepository = beneficiaryRepository;
-	}
-	public BeneficiaryRepository getBeneficiaryRepository() {
-		return beneficiaryRepository;
-	}
+	private BeneficiaryRepository beneficiaryRepository;
 	@Override
 	public BeneficiaryDTO updateBeneficiary(BeneficiaryDTO beneficiary) {
 		return new BeneficiaryDTO(Optional.ofNullable(beneficiaryRepository.saveAndFlush(beneficiary.getBeneficiary())));
@@ -38,8 +31,9 @@ public class BeneficiaryServiceImpl implements BeneficiaryService {
 		return new BeneficiaryDTO(Optional.ofNullable(beneficiaryRepository.save(beneficiary.getBeneficiary())));
 	}
 	@Override
-	public void deleteBeneficiary(Long id) {
+	public Boolean deleteBeneficiary(Long id) {
 		 beneficiaryRepository.deleteById(id);
+		 return true;
 	}
 	@Override
 	public BeneficiaryDTO getBeneficiary(Long id) {

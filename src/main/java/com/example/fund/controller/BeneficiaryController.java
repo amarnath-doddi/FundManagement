@@ -25,14 +25,8 @@ import com.example.fund.service.BeneficiaryService;
 @RequestMapping("/api/beneficiary")
 public class BeneficiaryController {
 	Logger logger = LoggerFactory.getLogger(BeneficiaryController.class);
-	private BeneficiaryService beneficiaryService;
 	@Autowired
-	public void setBeneficiaryService(BeneficiaryService beneficiaryService) {
-		this.beneficiaryService = beneficiaryService;
-	}
-	public BeneficiaryService getBeneficiaryService() {
-		return beneficiaryService;
-	}
+	private BeneficiaryService beneficiaryService;
 	
 	@GetMapping("/")
 	public ResponseEntity<List<BeneficiaryDTO>> getBeneficiaries(){
@@ -44,18 +38,19 @@ public class BeneficiaryController {
 		return new ResponseEntity<>(beneficies,HttpStatus.OK);
 	}
 	@GetMapping("/{id}")
-	public ResponseEntity<BeneficiaryDTO> getBeneficiary(@PathVariable Long id) throws BeneficiaryNotfoundException{
+	public ResponseEntity<BeneficiaryDTO> getBeneficiary(@PathVariable Long id){
 		BeneficiaryDTO beneficiary = beneficiaryService.getBeneficiary(id);
 		if(beneficiary==null) {
-			logger.error("Beneficiary doesn't exist with id :"+id);
-			throw new BeneficiaryNotfoundException("Beneficiary doesn't exist with id :"+id);
+			String message = String.format("Beneficiary doesn't exist with id :%s",id); 
+			logger.error(message);
+			throw new BeneficiaryNotfoundException(message);
 		}
 		return new ResponseEntity<>(beneficiary,HttpStatus.OK);
 	}
 	
 	@PostMapping("/")
-	public ResponseEntity<BeneficiaryDTO> createBeneficiary(@RequestBody BeneficiaryDTO beneficiary) throws DuplicateEntryException{
-		BeneficiaryDTO existingBeneficiary= beneficiaryService.getByBeneficiaryAccountNumber(beneficiary.getAccountNumber());
+	public ResponseEntity<BeneficiaryDTO> createBeneficiary(@RequestBody BeneficiaryDTO beneficiary){
+		BeneficiaryDTO existingBeneficiary= beneficiaryService.getByBeneficiaryAccountNumber(beneficiary.getAccount().getAccountNumber());
 		if(existingBeneficiary!=null) {
 			logger.error("Beneficiary already exist!");
 			throw new DuplicateEntryException("Beneficiary already exist!");
@@ -79,15 +74,16 @@ public class BeneficiaryController {
 	
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Boolean> deleteUser(@PathVariable Long id){
-		 beneficiaryService.deleteBeneficiary(id);
-		return new ResponseEntity<>(HttpStatus.OK);
+		Boolean isDeleted = beneficiaryService.deleteBeneficiary(id);
+		return new ResponseEntity<>(isDeleted,HttpStatus.OK);
 	}
 	
 	@GetMapping("/account/{id}")
 	public ResponseEntity<List<BeneficiaryDTO>> getBeneficiariesByAccountId(@PathVariable Long id) throws BeneficiaryNotfoundException{
 		List<BeneficiaryDTO> beneficiaries = beneficiaryService.getByAccountId(id);
 		if(beneficiaries==null) {
-			throw new BeneficiaryNotfoundException("Beneficiary doesn't exist for account id :"+id);
+			String message = String.format("Beneficiary doesn't exist for account id :%s",id);
+			throw new BeneficiaryNotfoundException(message);
 		}
 		return new ResponseEntity<>(beneficiaries,HttpStatus.OK);
 	}

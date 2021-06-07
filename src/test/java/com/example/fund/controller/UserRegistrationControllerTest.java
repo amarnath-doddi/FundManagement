@@ -1,6 +1,10 @@
 package com.example.fund.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.fund.dto.UserDTO;
+import com.example.fund.exception.DuplicateEntryException;
 import com.example.fund.exception.UserNotfoundException;
 import com.example.fund.service.UserRegistrationServiceImpl;
 
@@ -45,8 +50,8 @@ class UserRegistrationControllerTest {
 		user.setLastName("Doddi");
 		user.setEmail("amarnath.doddi@hcl.com");
 		user.setPhone("987654321");
-		user.setLoginId("amardoddi");
-		user.setPassword("test");
+		user.getLogin().setLoginId("amardoddi");
+		user.getLogin().setPassword("test");
 		user.setLastUpdated(date);
 		
 		user1 = new UserDTO();
@@ -54,8 +59,8 @@ class UserRegistrationControllerTest {
 		user1.setLastName("Doddi1");
 		user1.setEmail("amarnath1.doddi@hcl.com");
 		user1.setPhone("9876543211");
-		user1.setLoginId("amardoddi1");
-		user1.setPassword("test1");
+		user1.getLogin().setLoginId("amardoddi1");
+		user1.getLogin().setPassword("test1");
 		user1.setLastUpdated(date1);
 		
 		users = new ArrayList<>();
@@ -78,6 +83,16 @@ class UserRegistrationControllerTest {
 	}
 	
 	@Test
+	@DisplayName("Negitive Senario: Get all users test")
+	void testNoUsers() {
+		when(registrationServiceImpl.getUsers()).thenReturn(null);
+		
+		List<UserDTO> persistedUsers = userRegistrationController.getUsers().getBody();
+		
+		assertNull(persistedUsers);
+	}
+	
+	@Test
 	@DisplayName("Get user by id test")
 	void testGetUserById() {
 		when(registrationServiceImpl.getUser(any(Long.class))).thenReturn(user);
@@ -87,6 +102,14 @@ class UserRegistrationControllerTest {
 		verify(registrationServiceImpl).getUser(1L);
 		
 		assertEquals(user, persistedUser);
+	}
+	
+	@Test
+	@DisplayName("No user exist with id")
+	void testGetNoUserById() {
+		when(registrationServiceImpl.getUser(any(Long.class))).thenReturn(null);
+		
+		assertThrows(UserNotfoundException.class, ()->userRegistrationController.getUser(1L));
 	}
 	
 	@Test
@@ -117,6 +140,20 @@ class UserRegistrationControllerTest {
 	}
 	
 	@Test
+	@DisplayName("Unsuccessfull Update user test")
+	void testUnsuccessfullUpdateUser() {
+		when(registrationServiceImpl.updateUser(any(UserDTO.class))).thenAnswer(i -> {
+			UserDTO user = i.getArgument(0);
+			user.setId(1000L);
+			user.setFirstName("Test");
+			return user;
+		});
+		
+		UserDTO persistedUser = userRegistrationController.updateUser(user1).getBody();
+		assertNotEquals(user, persistedUser);
+	}
+	
+	@Test
 	@DisplayName("Delete User Test")
 	void testDeleteUser() {
 		when(registrationServiceImpl.deleteUser(1L)).thenReturn(true);
@@ -126,6 +163,18 @@ class UserRegistrationControllerTest {
 	    verify(registrationServiceImpl, times(1)).deleteUser(1L);
 	    
 	    assertTrue(isDeleted);
+	}
+	
+	@Test
+	@DisplayName("Error deleting userDelete User Test")
+	void testErrorDeletingUser() {
+		when(registrationServiceImpl.deleteUser(1L)).thenReturn(false);
+
+		boolean isDeleted = userRegistrationController.deleteUser(1L).getBody();
+
+	    verify(registrationServiceImpl, times(1)).deleteUser(1L);
+
+	    assertFalse(isDeleted);
 	}
 	
 	@Test
@@ -141,7 +190,25 @@ class UserRegistrationControllerTest {
 		
 		assertEquals(user, persistedUser);
 	}
-	
+	@Test
+	void testSaveDuplicateEntry() {
+		when(registrationServiceImpl.findByEmail(any(String.class))).thenAnswer(i -> {
+			String email = i.getArgument(0);
+			user.setEmail(email);
+			return user;
+		});
+		UserDTO userByEmail = userRegistrationController.getUserByEmail("amarnath.doddi1@hcl.com").getBody();
+		assertNotNull(userByEmail);
+		assertNotEquals("amarnath.doddi@hcl.com", user.getEmail());
+	}
+	@Test
+	@DisplayName("Negitive Senario:Save User with existing email")
+	void testSaveDuplicateEntry1(){
+		user.setEmail("amarnath.doddi@hcl.com");
+		when(registrationServiceImpl.createUser(user)).thenThrow(DuplicateEntryException.class);
+		
+		assertThrows(DuplicateEntryException.class, ()->userRegistrationController.createUser(user));
+	}
 	@Test
 	@DisplayName("Negitive Senario:Save User with firstname lessthan 2")
 	void testCreateUserFirstNameLessthan2(){
@@ -167,5 +234,16 @@ class UserRegistrationControllerTest {
 		when(registrationServiceImpl.createUser(user)).thenThrow(ConstraintViolationException.class);
 		
 		assertThrows(ConstraintViolationException.class, ()->registrationServiceImpl.createUser(user));
+	}
+	
+	@Test
+	@DisplayName("getDistinctUsersByLastNameAndFirstName")
+	void testgetDistinctUsersByLastNameAndFirstName() {
+		when(registrationServiceImpl.findDistinctByLastNameAndFirstName(any(String.class),any(String.class))).thenReturn(users);
+		
+		UserDTO persistedUser = userRegistrationController.getDistinctUsersByLastNameAndFirstName("Amar","Doddi").get(0);
+		
+		assertEquals("Amar", persistedUser.getFirstName());
+		assertEquals("Doddi", persistedUser.getLastName());
 	}
 }

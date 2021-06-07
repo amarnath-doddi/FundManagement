@@ -1,7 +1,9 @@
 package com.example.fund.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,14 +18,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.example.fund.dto.AccountDTO;
 import com.example.fund.dto.BeneficiaryDTO;
-import com.example.fund.entity.Beneficiary;
 import com.example.fund.exception.BeneficiaryNotfoundException;
 import com.example.fund.service.BeneficiaryServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 class BeneficiaryControllerTest {
+	Logger logger = LoggerFactory.getLogger(BeneficiaryController.class);
 	@Mock
 	private BeneficiaryServiceImpl beneficiaryServiceImpl;
 	@InjectMocks
@@ -36,17 +41,13 @@ class BeneficiaryControllerTest {
 	public static void setUp() {
 		beneficiary = new BeneficiaryDTO();
 		beneficiary.setId(3001l);
-		beneficiary.setAccountId(2001L);
-		beneficiary.setAccountNumber(32435366L);
-		beneficiary.setBalance(0.00);
+		beneficiary.setAccount(new AccountDTO(2001L,32435366L,0.00));
 		beneficiary.setIfscCode("HDFC2324");
 		beneficiary.setName("TestBeneficiary");
 		
 		beneficiary1 = new BeneficiaryDTO();
-		beneficiary.setId(3002l);
-		beneficiary1.setAccountId(2002L);
-		beneficiary1.setAccountNumber(99000366L);
-		beneficiary1.setBalance(100.00);
+		beneficiary1.setId(3002l);
+		beneficiary1.setAccount(new AccountDTO(2002L,99000366L,100.00));
 		beneficiary1.setIfscCode("ICICI5624");
 		beneficiary1.setName("TestBeneficiary1");
 		
@@ -60,12 +61,18 @@ class BeneficiaryControllerTest {
 	@Test
 	@DisplayName("Get all Beneficiaries test")
 	void testGetAllBeneficiaries() {
-		when(beneficiaryServiceImpl.getBeneficiries()).thenReturn(beneficiarys);
+		when(beneficiaryServiceImpl.getBeneficiries()).thenAnswer(i -> {
+			if(beneficiarys==null)
+				return null;
+			return beneficiarys;
+		});
 		
 		List<BeneficiaryDTO> persistedBeneficiarys = beneficiaryController.getBeneficiaries().getBody();
-		
+		if(persistedBeneficiarys==null) {
+			logger.info("No beneficiaries exist in the system.");
+		}
 		verify(beneficiaryServiceImpl).getBeneficiries();
-		
+		assertNotNull(persistedBeneficiarys);
 		assertEquals(beneficiarys, persistedBeneficiarys);
 	}
 	
@@ -124,5 +131,30 @@ class BeneficiaryControllerTest {
 		BeneficiaryDTO persistedBeneficiary = beneficiaryServiceImpl.createBeneficiary(beneficiary);
 		
 		assertEquals(beneficiary, persistedBeneficiary);
+	}
+	@Test
+	@DisplayName("delete Beneficiary by id test")
+	void testdeleteUser() {
+		when(beneficiaryServiceImpl.deleteBeneficiary(any(Long.class))).thenReturn(true);
+		
+		boolean isDeleted = beneficiaryController.deleteUser(3001L).getBody();
+		assertTrue(isDeleted);
+	}
+	@Test
+	@DisplayName("Get Beneficiary by account id test")
+	void testgetBeneficiariesByAccountId() {
+		List<BeneficiaryDTO> beneficiaries = new ArrayList<>();
+		when(beneficiaryServiceImpl.getByAccountId(any(Long.class))).thenAnswer(i -> {
+			Long beneficiaryId = i.getArgument(0);
+			beneficiary.setId(beneficiaryId);
+			beneficiaries.add(beneficiary);
+			return beneficiaries;
+		});
+		
+		List<BeneficiaryDTO> persistedBeneficiary = beneficiaryController.getBeneficiariesByAccountId(2001L).getBody();
+		
+		//verify(beneficiaryServiceImpl).getBeneficiary(3001L);
+		
+		assertEquals(beneficiaries, persistedBeneficiary);
 	}
 }

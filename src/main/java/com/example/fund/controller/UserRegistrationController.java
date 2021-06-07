@@ -35,14 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/users")
 public class UserRegistrationController {
 	Logger logger = LoggerFactory.getLogger(UserRegistrationController.class);
-	private UserRegistrationService userRegistrationService;
 	@Autowired
-	public void setUserRegistrationService(UserRegistrationService userRegistrationService) {
-		this.userRegistrationService = userRegistrationService;
-	}
-	public UserRegistrationService getUserRegistrationService() {
-		return userRegistrationService;
-	}
+	private UserRegistrationService userRegistrationService;
 	
 	@GetMapping("/")
 	public ResponseEntity<List<UserDTO>> getUsers(){
@@ -54,19 +48,20 @@ public class UserRegistrationController {
 		return new ResponseEntity<>(users,HttpStatus.OK);
 	}
 	@GetMapping("/{id}")
-	public ResponseEntity<UserDTO> getUser(@PathVariable Long id) throws UserNotfoundException{
+	public ResponseEntity<UserDTO> getUser(@PathVariable Long id){
 		UserDTO user = userRegistrationService.getUser(id);
 		if(user==null) {
-			logger.error("User doesn't exist with id :"+id);
-			throw new UserNotfoundException("User doesn't exist with id :"+id);
+			String message = String.format("User doesn't exist with id :%s", id);
+			logger.error(message);
+			throw new UserNotfoundException(message);
 		}
 		return new ResponseEntity<>(user,HttpStatus.OK);
 	}
 	
 	@PostMapping("/")
-	public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO user) throws DuplicateEntryException{
+	public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO user){
 		UserDTO existingUser = userRegistrationService.findByEmail(user.getEmail());
-		if(existingUser!=null && !user.getEmail().equals(user.getEmail())) {
+		if(existingUser!=null && !user.getEmail().equals(existingUser.getEmail())) {
 			logger.error("User already exist!");
 			throw new DuplicateEntryException("User already exist!");
 		}
@@ -92,7 +87,7 @@ public class UserRegistrationController {
 		boolean isDeleted = userRegistrationService.deleteUser(id);
 		if(!isDeleted) {
 			logger.error("User delete unsuccessfull!");
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			return new ResponseEntity<>(isDeleted,HttpStatus.NO_CONTENT);
 		}
 		return new ResponseEntity<>(isDeleted,HttpStatus.OK);
 	} 
@@ -123,11 +118,12 @@ public class UserRegistrationController {
 	}
 	
 	@GetMapping("/email/{email}")
-	public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) throws UserNotfoundException{
+	public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email){
 		UserDTO user = userRegistrationService.findByEmail(email);
 		if(user==null) {
-			logger.error("User doesn't exist with email :"+email);
-			throw new UserNotfoundException("User doesn't exist with email :"+email);
+			String message = String.format("User doesn't exist with email :%s", email);
+			logger.error(message);
+			throw new UserNotfoundException(message);
 		}
 		return new ResponseEntity<>(user,HttpStatus.OK);
 	}

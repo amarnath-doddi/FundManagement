@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.fund.dto.AccountDTO;
 import com.example.fund.dto.BeneficiaryDTO;
 import com.example.fund.dto.FundTransfer;
+import com.example.fund.dto.UserAccountDTO;
 import com.example.fund.dto.UserDTO;
 import com.example.fund.exception.InsufficientFundException;
 import com.example.fund.service.BeneficiaryService;
@@ -27,45 +27,29 @@ import com.example.fund.service.UserRegistrationService;
 @RequestMapping("/api/fund")
 public class FundTransferController {
 	Logger logger = LoggerFactory.getLogger(FundTransferController.class);
+	@Autowired
 	private FundTransferService fundTransferService;
+	@Autowired
 	private BeneficiaryService beneficiaryService;
+	@Autowired
 	private UserRegistrationService userService;
-	@Autowired
-	public void setFundTransferService(FundTransferService fundTransferService) {
-		this.fundTransferService = fundTransferService;
-	}
-	@Autowired
-	public void setBeneficiaryService(BeneficiaryService beneficiaryService) {
-		this.beneficiaryService = beneficiaryService;
-	}
-	@Autowired
-	public void setUserService(UserRegistrationService userService) {
-		this.userService = userService;
-	}
-	public FundTransferService getFundTransferService() {
-		return fundTransferService;
-	}
-	public BeneficiaryService getBeneficiaryService() {
-		return beneficiaryService;
-	}
-	public UserRegistrationService getUserService() {
-		return userService;
-	}
+	
 	@PutMapping("/")
 	public ResponseEntity<UserDTO> transfer(@RequestBody FundTransfer fundTransfer){
 		
 		BiFunction<Double,Double,Double> addAmount = (a,b) -> a + b;
 		BiFunction<Double,Double,Double> subAmount = (a,b) -> a -b;
-		AccountDTO account = fundTransferService.getByAccountId(beneficiaryService.getBeneficiary(fundTransfer.getBeneficaryId()).getAccountId());
+		UserAccountDTO account = fundTransferService.getByAccountId(beneficiaryService.getBeneficiary(fundTransfer.getBeneficaryId()).getAccount().getId());
 		//insufficient funds
-		if(fundTransfer.getAmount()>account.getBalance()) {
-			logger.error("Insufficient fund :"+fundTransfer.getAmount()+" to transfer. Available balance only :"+account.getBalance());
-			throw new InsufficientFundException("Insufficient fund :"+fundTransfer.getAmount()+" to transfer. Available balance only :"+account.getBalance());
+		if(fundTransfer.getAmount()>account.getAccountDTO().getBalance()) {
+			String message = String.format("Insufficient fund :%s to transfer. Available balance only :%s",fundTransfer.getAmount(),account.getAccountDTO().getBalance());
+			logger.error(message);
+			throw new InsufficientFundException(message);
 		}
-		account.setBalance(subAmount.apply(account.getBalance(), fundTransfer.getAmount()));
+		account.getAccountDTO().setBalance(subAmount.apply(account.getAccountDTO().getBalance(), fundTransfer.getAmount()));
 		fundTransferService.updateAccount(account);
 		BeneficiaryDTO beneficiary = beneficiaryService.getBeneficiary(fundTransfer.getBeneficaryId());
-		beneficiary.setBalance(addAmount.apply(beneficiary.getBalance(), fundTransfer.getAmount()));
+		beneficiary.getAccount().setBalance(addAmount.apply(beneficiary.getAccount().getBalance(), fundTransfer.getAmount()));
 		beneficiaryService.updateBeneficiary(beneficiary);
 		UserDTO user = userService.getUser(account.getUserId());
 		logger.info("Amount transfered successfully.");
@@ -73,14 +57,14 @@ public class FundTransferController {
 	}
 	
 	@GetMapping("/account/user/{userId}")
-	public ResponseEntity<AccountDTO> getAccountByUserId(@PathVariable Long userId){
-		AccountDTO account = fundTransferService.getByUserId(userId);
+	public ResponseEntity<UserAccountDTO> getAccountByUserId(@PathVariable Long userId){
+		UserAccountDTO account = fundTransferService.getByUserId(userId);
 		return new ResponseEntity<>(account,HttpStatus.OK);
 	}
 	
 	@GetMapping("/account/{accountId}")
-	public ResponseEntity<AccountDTO> getAccountById(@PathVariable Long accountId){
-		AccountDTO account = fundTransferService.getByAccountId(accountId);
+	public ResponseEntity<UserAccountDTO> getAccountById(@PathVariable Long accountId){
+		UserAccountDTO account = fundTransferService.getByAccountId(accountId);
 		return new ResponseEntity<>(account,HttpStatus.OK);
 	}
 }

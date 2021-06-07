@@ -1,14 +1,13 @@
 package com.example.fund.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
 import com.example.fund.dto.UserDTO;
 import com.example.fund.entity.User;
@@ -54,8 +54,8 @@ class UserRegistrationServiceImplTest {
 		user.setLastName("Doddi");
 		user.setEmail("amarnath.doddi@hcl.com");
 		user.setPhone("987654321");
-		user.setLoginId("amardoddi");
-		user.setPassword("test");
+		user.getLogin().setLoginId("amardoddi");
+		user.getLogin().setPassword("test");
 		user.setLastUpdated(date);
 		
 		userPersisted = new UserDTO();
@@ -64,8 +64,8 @@ class UserRegistrationServiceImplTest {
 		userPersisted.setLastName("Doddi");
 		userPersisted.setEmail("amarnath.doddi@hcl.com");
 		userPersisted.setPhone("987654321");
-		userPersisted.setLoginId("amardoddi");
-		userPersisted.setPassword("test");
+		userPersisted.getLogin().setLoginId("amardoddi");
+		userPersisted.getLogin().setPassword("test");
 		userPersisted.setLastUpdated(date);
 	}
 	
@@ -80,9 +80,9 @@ class UserRegistrationServiceImplTest {
 			return user;
 		});
 		//event
-		UserDTO user = userRegistrationServiceImpl.createUser(this.user);
+		UserDTO savedUser = userRegistrationServiceImpl.createUser(user);
 		//outcome
-		assertEquals(user,userPersisted);
+		assertEquals(savedUser,userPersisted);
 	}
 	
 	@Test
@@ -95,8 +95,8 @@ class UserRegistrationServiceImplTest {
 			user.setLoginId("temploginid");
 			return user;
 		});
-		UserDTO user = userRegistrationServiceImpl.updateUser(this.user);
-		assertEquals(user.getLoginId(), "temploginid");
+		UserDTO updateUser = userRegistrationServiceImpl.updateUser(user);
+		assertEquals("temploginid",updateUser.getLogin().getLoginId());
 	}
 	
 	@Test
@@ -109,4 +109,68 @@ class UserRegistrationServiceImplTest {
 
 	    //verify(userRepository, times(1)).delete(user.getUser());
 	}
+	@Test
+	@Order(4)
+	@DisplayName("Test findByLoginId")
+	void testfindByLoginId() {
+		when(userRepository.findByLoginId(any(String.class))).thenAnswer(i -> {
+			String loginId = i.getArgument(0);
+			user.getLogin().setLoginId(loginId);
+			return user.getUser();
+		});
+		
+		UserDTO dbUser = userRegistrationServiceImpl.findByLoginId("amardoddi");
+		assertNotNull(dbUser);
+		assertEquals("amardoddi",userRegistrationServiceImpl.findByLoginId("amardoddi").getLogin().getLoginId());
+	}
+	
+	@Test
+	@DisplayName("Test findByFirstnameEndingWith")
+	void testfindByFirstnameEndingWith() {
+		List<UserDTO> userAccount =  userRegistrationServiceImpl.findByFirstnameEndingWith("mar");
+		assertNotNull(userAccount);
+	}
+	@Test
+	@DisplayName("Test findByFirstnameStartingWith")
+	void testfindByFirstnameStartingWith() {
+		List<UserDTO> userAccount =  userRegistrationServiceImpl.findByFirstnameStartingWith("ama");
+		assertNotNull(userAccount);
+	}
+	@Test
+	@DisplayName("Test findByFirstnameLike")
+	void testfindByFirstnameLike() {
+		List<UserDTO> userAccount =  userRegistrationServiceImpl.findByFirstnameLike("ma");
+		assertNotNull(userAccount);
+	}
+	@Test
+	@DisplayName("Test findDistinctByLastNameAndFirstName")
+	void testfindDistinctByLastNameAndFirstName() {
+		List<UserDTO> userAccount =  userRegistrationServiceImpl.findDistinctByLastNameAndFirstName("amarnath","doddi");
+		assertNotNull(userAccount);
+	}
+	@Test
+	@DisplayName("Test findByEmail")
+	void testfindByEmail() {
+		UserDTO userAccount =  userRegistrationServiceImpl.findByEmail("amarnath.doddi@hcl.com");
+		assertNotNull(userAccount);
+	}
+	@Test
+	@DisplayName("Test getUsersSortBy")
+	void testgetUsersSortBy() {
+		List<UserDTO> userAccount =  userRegistrationServiceImpl.getUsersSortBy(Sort.by("firstName").ascending());
+		assertNotNull(userAccount);
+	}
+	@Test
+	@DisplayName("Test getUsers")
+	void testgetUsers() {
+		List<UserDTO> userAccount =  userRegistrationServiceImpl.getUsers();
+		assertNotNull(userAccount);
+	}
+	@Test
+	@DisplayName("Test getUser")
+	void testgetUser() {
+		UserDTO userAccount =  userRegistrationServiceImpl.getUser(1000L);
+		assertNotNull(userAccount);
+	}
+
 }

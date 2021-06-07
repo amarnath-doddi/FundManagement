@@ -1,13 +1,22 @@
 package com.example.fund.dto;
 
 public class Login {
-	private String userId;
+	private String loginId;
 	private String password;
-	public String getUserId() {
-		return userId;
+	public Login() {
 	}
-	public void setUserId(String userId) {
-		this.userId = userId;
+	
+	public Login(String loginId, String password) {
+		super();
+		this.loginId = loginId;
+		this.password = password;
+	}
+
+	public String getLoginId() {
+		return loginId;
+	}
+	public void setLoginId(String userId) {
+		this.loginId = userId;
 	}
 	public String getPassword() {
 		return password;

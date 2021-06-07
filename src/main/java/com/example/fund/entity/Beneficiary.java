@@ -4,12 +4,9 @@ import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -70,7 +67,9 @@ public class Beneficiary {
 	@Override
 	public boolean equals(Object obj) {
 		if(this==obj) return true;
-		if(obj==null||getClass()!=obj.getClass()) return false;
+		if(obj==null||getClass()!=obj.getClass()) {
+			return false;
+		}
 		
 		 Beneficiary beneficiary = (Beneficiary) obj;
 	        return id == beneficiary.id 

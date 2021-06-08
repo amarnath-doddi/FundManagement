@@ -2,7 +2,6 @@ package com.example.fund.controller;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -35,8 +34,8 @@ class LoginControllerTest {
 	public static void setUp() {
 		user = new UserDTO();
 		user.setId(1000L);
-		user.setLoginId("amardoddi");
-		user.setPassword("amardoddi");
+		user.getLogin().setLoginId("amardoddi");
+		user.getLogin().setPassword("amardoddi");
 		user.setFirstName("Amarnath");
 		user.setLastName("Doddi");
 		user.setEmail("amarnath@gmail.com");
@@ -65,9 +64,13 @@ class LoginControllerTest {
 	@Test
 	@DisplayName("Negitive Senario:Invalid password")
 	void testLoginInvalidPassword(){
-		
 		//when(loginServiceImpl.login(any(String.class), any(String.class))).thenThrow(InvalidCredentialsException.class);
 		
 		assertThrows(InvalidCredentialsException.class, ()->loginController.login("amardoddi", "Test"));
+	}
+	
+	@Test
+	void testValidatePassword() {
+		assertThrows(InvalidCredentialsException.class, ()->loginController.validatePassword("amardoddi1", user));
 	}
 }

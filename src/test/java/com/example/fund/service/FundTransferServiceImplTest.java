@@ -1,5 +1,6 @@
 package com.example.fund.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.fund.dto.AccountDTO;
 import com.example.fund.dto.FundTransfer;
+import com.example.fund.dto.UserAccountDTO;
 import com.example.fund.entity.Account;
 import com.example.fund.repository.AccountRepository;
 
@@ -32,17 +34,15 @@ public class FundTransferServiceImplTest {
 	private FundTransferServiceImpl fundTransferServiceImpl;
 	
 	private static FundTransfer fundTransfer;
-	private static AccountDTO account;
+	private static UserAccountDTO account;
 	@BeforeAll
 	public static void setUp() {
 		fundTransfer = new FundTransfer();
 		fundTransfer.setAmount(500.00);
 		fundTransfer.setBeneficaryId(3001L);
 		
-		account = new AccountDTO();
-		account.setId(1L);
-		account.setAccountNumber(3234456L);
-		account.setBalance(1000.00);
+		account = new UserAccountDTO();
+		account.setAccountDTO(new AccountDTO(1L,3234456L,1000.00));
 		account.setUserId(1000L);
 		
 	}
@@ -50,9 +50,9 @@ public class FundTransferServiceImplTest {
 	@DisplayName("Test Fund Transfer")
 	@Order(1)
 	void testGetUserById() {
-		when(accountRepository.findByUserId(any(Long.class))).thenReturn(account.getAccount());
+		when(accountRepository.findByUserId(any(Long.class))).thenReturn(account.getUserAccount());
 		
-		AccountDTO persistedAccount = fundTransferServiceImpl.getByUserId(1000L);
+		UserAccountDTO persistedAccount = fundTransferServiceImpl.getByUserId(1000L);
 		
 		assertEquals(account, persistedAccount);
 	}
@@ -66,8 +66,15 @@ public class FundTransferServiceImplTest {
 			account.setBalance(500.00);
 			return account;
 		});
-		account.setBalance(500.00);
+		account.getAccountDTO().setBalance(500.00);
 		fundTransferServiceImpl.updateAccount(account);
-		assertEquals(account.getBalance(), 500.00);
+		assertEquals(500.00, account.getAccountDTO().getBalance());
+	}
+	
+	@Test
+	@DisplayName("Test getByAccountId")
+	void testGetByAccountId() {
+		UserAccountDTO userAccount =  fundTransferServiceImpl.getByAccountId(2001L);
+		assertNotNull(userAccount);
 	}
 }

@@ -8,23 +8,16 @@ import com.example.fund.repository.LoginRepository;
 
 @Service
 public class LoginServiceImpl implements LoginService {
-	
+	@Autowired
 	private LoginRepository loginRepository;
 	
-	@Autowired
-	public void setLoginRepository(LoginRepository loginRepository) {
-		this.loginRepository = loginRepository;
-	}
-	public LoginRepository getLoginRepository() {
-		return loginRepository;
-	}
 	@Override
 	public boolean login(String loginId, String password) {
-		User user = loginRepository.findByLoginIdAndPassword(loginId,password);
-		if(user!=null) {
-			return true;
-		}
-		return false;
+		return isLoginSuccessfull(loginRepository.findByLoginIdAndPassword(loginId,password));
+	}
+
+	public boolean isLoginSuccessfull(User user) {
+		return user!=null;
 	}
 
 	@Override
@@ -32,21 +25,15 @@ public class LoginServiceImpl implements LoginService {
 		User user = loginRepository.findByLoginId(userId);
 		user.setPassword(password);
 		User updatedUser = loginRepository.saveAndFlush(user);
-		if(user.getLoginId().equals(userId) && user.getPassword().equals(password)) {
-			return true;
-		}
-		return false;
+		return password.equals(updatedUser.getPassword());
 	}
 
 	@Override
 	public boolean resetUserId(String userId, String newUserId) {
 		User user = loginRepository.findByLoginId(userId);
 		user.setLoginId(newUserId);
-		User updatedUser = loginRepository.saveAndFlush(user);
-		if(user.getLoginId().equals(newUserId)) {
-			return true;
-		}
-		return false;
+		loginRepository.saveAndFlush(user);
+		return user.getLoginId().equals(newUserId);
 	}
 
 }

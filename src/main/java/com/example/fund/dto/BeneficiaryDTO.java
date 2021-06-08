@@ -8,20 +8,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class BeneficiaryDTO {
 	private Long id;
-	private Long accountNumber;
 	private String name;
 	private String ifscCode;
-	private Double balance;
-	private Long accountId;
+	private AccountDTO account;
 	public BeneficiaryDTO() {
 	}
 	public BeneficiaryDTO(Optional<Beneficiary> beneficiaryOptional) {
 		if(beneficiaryOptional.isPresent()) {
+			account = new AccountDTO();
 			Beneficiary beneficiary = beneficiaryOptional.get();
 			this.id = beneficiary.getId();
-			this.accountId = beneficiary.getAccountId();
-			this.accountNumber = beneficiary.getAccountNumber();
-			this.balance = beneficiary.getBalance();
+			this.account.setId(beneficiary.getAccountId());
+			this.account.setAccountNumber(beneficiary.getAccountNumber());
+			this.account.setBalance(beneficiary.getBalance());
 			this.ifscCode = beneficiary.getIfscCode();
 			this.name = beneficiary.getName();
 		}
@@ -31,12 +30,6 @@ public class BeneficiaryDTO {
 	}
 	public void setId(Long id) {
 		this.id = id;
-	}
-	public Long getAccountNumber() {
-		return accountNumber;
-	}
-	public void setAccountNumber(Long accountNumber) {
-		this.accountNumber = accountNumber;
 	}
 	public String getName() {
 		return name;
@@ -50,23 +43,18 @@ public class BeneficiaryDTO {
 	public void setIfscCode(String ifscCode) {
 		this.ifscCode = ifscCode;
 	}
-	public Double getBalance() {
-		return balance;
+	public void setAccount(AccountDTO account) {
+		this.account = account;
 	}
-	public void setBalance(Double balance) {
-		this.balance = balance;
-	}
-	public void setAccountId(Long accountId) {
-		this.accountId = accountId;
-	}
-	public Long getAccountId() {
-		return accountId;
+	public AccountDTO getAccount() {
+		return account;
 	}
 	public BeneficiaryDTO getBeneficiaryDTO(Beneficiary beneficiary) {
+		account = new AccountDTO();
 		this.id = beneficiary.getId();
-		this.accountId = beneficiary.getAccountId();
-		this.accountNumber = beneficiary.getAccountNumber();
-		this.balance = beneficiary.getBalance();
+		this.account.setId( beneficiary.getAccountId());
+		this.account.setAccountNumber(beneficiary.getAccountNumber());
+		this.account.setBalance(beneficiary.getBalance());
 		this.ifscCode = beneficiary.getIfscCode();
 		this.name = beneficiary.getName();
 		return this;
@@ -76,9 +64,9 @@ public class BeneficiaryDTO {
 	public Beneficiary getBeneficiary() {
 		Beneficiary beneficiary = new Beneficiary();
 		beneficiary.setId(id);
-		beneficiary.setAccountId(accountId);
-		beneficiary.setAccountNumber(accountNumber);
-		beneficiary.setBalance(balance);
+		beneficiary.setAccountId(account.getId());
+		beneficiary.setAccountNumber(account.getAccountNumber());
+		beneficiary.setBalance(account.getBalance());
 		beneficiary.setIfscCode(ifscCode);
 		beneficiary.setName(name);
 		return beneficiary;
@@ -90,15 +78,15 @@ public class BeneficiaryDTO {
 		
 		 BeneficiaryDTO beneficiary = (BeneficiaryDTO) obj;
 	        return id == beneficiary.id 
-	        		&& balance == beneficiary.balance
-	        		&& accountId == beneficiary.accountId
-	        		&& accountNumber == beneficiary.accountNumber
+	        		&& account.getBalance() == beneficiary.getAccount().getBalance()
+	        		&& account.getId() == beneficiary.getAccount().getId()
+	        		&& account.getAccountNumber() == beneficiary.getAccount().getAccountNumber()
 	        		&& Objects.equals(ifscCode, beneficiary.ifscCode)
 	        		&& Objects.equals(name, beneficiary.name);
 	    }
 
 	    @Override
 	    public int hashCode() {
-	        return Objects.hash(id, balance, accountId, accountNumber, ifscCode, name);
+	        return Objects.hash(id, account.getBalance(), account.getId(), account.getAccountNumber(), ifscCode, name);
 	    }
 }

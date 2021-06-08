@@ -1,11 +1,9 @@
 package com.example.fund.service;
 
-import com.example.fund.dto.AccountDTO;
-import com.example.fund.dto.FundTransfer;
+import com.example.fund.dto.UserAccountDTO;
 
 public interface FundTransferService {
-	public boolean transfer(FundTransfer fundTransfer);
-	public AccountDTO getByUserId(Long userId);
-	public AccountDTO updateAccount(AccountDTO account);
-	public AccountDTO getByAccountId(Long accountId);
+	public UserAccountDTO getByUserId(Long userId);
+	public UserAccountDTO updateAccount(UserAccountDTO account);
+	public UserAccountDTO getByAccountId(Long accountId);
 }

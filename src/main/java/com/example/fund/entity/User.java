@@ -1,17 +1,13 @@
 package com.example.fund.entity;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Objects;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
@@ -50,10 +46,6 @@ public class User {
 	@Column(name = "phone")
 	@NonNull
 	private String phone;
-	
-	//@OneToMany(targetEntity = Account.class, cascade = CascadeType.ALL)
-	//@JoinColumn(name = "user_id")
-	//private List<Account> accounts;
 	
 	public Long getId() {
 		return id;
@@ -110,11 +102,6 @@ public class User {
 		this.password = password;
 	}
 
-	
-	//public List<Account> getAccounts() { return accounts; }
-	 
-	//public void setAccounts(List<Account> accounts) { this.accounts = accounts; }
-	
 	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -134,8 +121,4 @@ public class User {
     public int hashCode() {
         return Objects.hash(id, lastName, firstName, loginId, password, email, phone, lastUpdated);
     }
-	
-	
-	
-	
 }
